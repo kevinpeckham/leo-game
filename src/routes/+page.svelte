@@ -1,62 +1,82 @@
-<!-- Example Svelte Page / Starter Web Page-->
 <script lang="ts">
-	// Components
-	import LogoBlock from '$components/molecules/LogoBlock.svelte';
 
-	// Store
-	import { brands } from '$lib/store/brandsStore';
+// components
+import Bullet from "$atoms/Bullet.svelte";
+import Donut from "$atoms/Donut.svelte";
+import Header from "$atoms/Header.svelte";
+import PositionTracker from "$atoms/PositionTracker.svelte";
+import Shooter from "$atoms/Shooter.svelte";
+import DonutDropper from "$atoms/DonutDropper.svelte";
+import WindowTracker from "$atoms/WindowTracker.svelte";
+
+// stores
+import { allBullets, activeBulletId, nextBulletId, activeBullet } from "$stores/bulletStore";
+import { allDonuts, donutCount, activeDonutId, nextDonutId } from "$stores/donutStore";
+import { shooterX } from "$stores/shooterStore";
+import { shotCount } from "$stores/shotStore";
+import { windowHeight, windowWidth } from "$stores/windowStore";
+import { gameStatus } from "$stores/gameStore";
+
+// functions
+function onStartButtonClick() {
+	$gameStatus ='playing';
+}
+
+function onMousedown() {
+	if ($gameStatus == 'playing') $shotCount++;
+}
+
+function onKeydown(e:KeyboardEvent) {
+
+	// if escape key is pressed, pause game
+	if (e.key == 'Escape') {
+		$gameStatus = 'paused';
+	}
+
+	// if spacebar is pressed increase donut count
+	// if (e.key == " ") {
+	// 	$donutCount = $donutCount + 1;
+	// }
+}
+
 </script>
 
 <template lang="pug">
-.grid.place-content-center.min-h-screen.text-white.p-4.relative.pb-48.bg-primary
-	div(class="sm:max-w-lg lg:max-w-xl xl:max-w-2xl")
-		//- Brand Grid
-		.mt-6.mb-8.grid.grid-cols-2.gap-8.mx-auto(class="max-w-[12rem] sm:m-0 sm:grid-cols-7 sm:gap-0 sm:max-w-none sm:mb-12 md:mb-8")
-			+each('$brands as brand, index')
-				+const('name = brand.name')
-				+const('href = brand.url')
-				+const('src = "/images/" + name.toLowerCase() + ".svg"')
-				+const('hidePlus = $brands.length == index + 1')
-				LogoBlock(
-					"{name}"
-					"{href}"
-					"{hidePlus}"
-					"{src}")
+WindowTracker
+PositionTracker
+#game.w-full.h-screen.relative.overflow-hidden.bg-blue-500(
+	tabindex="-1",
+	on:mousedown!="{onMousedown}"
+	on:keydown!="{onKeydown}"
+	)
+	// - Header
+	Header
 
-		.text-center(class="sm:text-left")
-			//- Headline
-			h1.mb-3.font-semibold.text-accent(class="prose-xl")
-				| Hit the ground running with Sveltekit, Typescript, TailwindCSS & Pug.
+	//- Bottom
+	.absolute.bottom-0.left-0.w-full.bg-green-500.h-12(tabindex="-1")
+	Shooter
+	DonutDropper
 
-			//- Body Copy
-			p.mb-10.text-md.opacity-90(class="prose-base sm:mb-8")
-				| This project is an open source starter template for Node projects using SvelteKit, Typescript, TailwindCSS, and Pug. Designed to help get you up and running quickly with the SkinnyPug Stack.
+	//- Bullets
+	+each('$allBullets as bullet, index')
+		Bullet("{bullet}")
 
-			//- Call-to-action
-			.mb-16.w-full(class="sm:mb-24")
-				a.inline-block.px-4.py-2.text-light.bg-transparent.outline.outline-white.outline-1.rounded.transition-all(
-					class="hover:bg-accent hover:outline-transparent hover:text-primary"
-					href="https://github.com/lightning-jar/lj-sveltekit-ts-tailwind-pug-starter"
-					title="View project on Github"
-					) Clone from Github
+	//- Donuts
+	+each('$allDonuts as donut, index')
+		Donut("{donut}")
 
-//- Prefooter
-.bottom-0.left-0.text-white.text-sm.pb-6.px-4.w-full.bg-primary(class="sm:absolute sm:px-8")
+	//- Start Button
+	+if('$gameStatus != "playing"')
+		.absolute.inset-0.grid.place-content-center
+			.bg-transparent.outline.outline-white.text-center.px-4.py-2.text-white.rounded.pointer-events-auto(
+				class="hover:bg-white hover:text-blue transition-colors"
+				on:click!="{onStartButtonClick}"
+				) {($gameStatus == "gameOver") ? "New Game" : "Start"}
 
-	//- Cross link
-	.text-sm.text-center.px-4.py-4.rounded-md.mb-0.group(class="bg-white/5")
-		a.italic.inline-block.text-white.opacity-90.transition-all(
-			class="group-hover:text-accent hover:opacity-100",
-			href="https://pugify.dev"
-			title="convert HTML to pug"
-			) Also check out the ad-free HTML to Pug converter @ https://pugify.dev
 
-//- Footer
-footer.bg-primary.text-white.text-xs.pb-24.px-4
-	.text-center
-		.mb-1.inline-block
-			span.opacity-70  Created by Kevin Peckham for
-			a.opacity-70.inline-block.ml-1.underline-offset-4.transition-all(
-				href="https://lightningjar.com"
-				class="hover:text-accent hover:opacity-100 hover:underline") Lightning Jar.
+
+
+
+
+
 </template>
